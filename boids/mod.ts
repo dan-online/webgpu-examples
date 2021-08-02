@@ -13,11 +13,14 @@ class Boids extends Framework {
 
   frameNum = 0;
 
-  constructor(options: {
-    particleCount: number;
-    particlesPerGroup: number;
-    dimensions: Dimensions;
-  }, device: GPUDevice) {
+  constructor(
+    options: {
+      particleCount: number;
+      particlesPerGroup: number;
+      dimensions: Dimensions;
+    },
+    device: GPUDevice
+  ) {
     super(options.dimensions, device);
 
     this.particleCount = options.particleCount;
@@ -137,12 +140,7 @@ class Boids extends Framework {
       },
     });
     const vertexBufferData = new Float32Array([
-      -0.01,
-      -0.02,
-      0.01,
-      -0.02,
-      0.00,
-      0.02,
+      -0.01, -0.02, 0.01, -0.02, 0.0, 0.02,
     ]);
     this.verticesBuffer = createBufferInit(this.device, {
       label: "Vertex Buffer",
@@ -159,38 +157,44 @@ class Boids extends Framework {
     }
 
     for (let i = 0; i < 2; i++) {
-      this.particleBuffers.push(createBufferInit(this.device, {
-        label: "Particle Buffer " + i,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE |
-          GPUBufferUsage.COPY_DST,
-        contents: initialParticleData.buffer,
-      }));
+      this.particleBuffers.push(
+        createBufferInit(this.device, {
+          label: "Particle Buffer " + i,
+          usage:
+            GPUBufferUsage.VERTEX |
+            GPUBufferUsage.STORAGE |
+            GPUBufferUsage.COPY_DST,
+          contents: initialParticleData.buffer,
+        })
+      );
     }
 
     for (let i = 0; i < 2; i++) {
-      this.particleBindGroups.push(this.device.createBindGroup({
-        layout: computeBindGroupLayout,
-        entries: [
-          {
-            binding: 0,
-            resource: {
-              buffer: simParamBuffer,
+      this.particleBindGroups.push(
+        this.device.createBindGroup({
+          layout: computeBindGroupLayout,
+          entries: [
+            {
+              binding: 0,
+              resource: {
+                buffer: simParamBuffer,
+              },
             },
-          },
-          {
-            binding: 1,
-            resource: {
-              buffer: this.particleBuffers[i],
+            {
+              binding: 1,
+              resource: {
+                buffer: this.particleBuffers[i],
+              },
             },
-          },
-          {
-            binding: 2,
-            resource: {
-              buffer: this.particleBuffers[(i + 1) % 2],
+            {
+              binding: 2,
+              resource: {
+                buffer: this.particleBuffers[(i + 1) % 2],
+              },
             },
-          },
-        ],
-      }));
+          ],
+        })
+      );
     }
   }
 
@@ -200,7 +204,7 @@ class Boids extends Framework {
     computePass.setPipeline(this.computePipeline);
     computePass.setBindGroup(0, this.particleBindGroups[this.frameNum % 2]);
     computePass.dispatch(
-      Math.ceil(this.particleCount / this.particlesPerGroup),
+      Math.ceil(this.particleCount / this.particlesPerGroup)
     );
     computePass.endPass();
     encoder.popDebugGroup();
@@ -218,7 +222,7 @@ class Boids extends Framework {
     renderPass.setPipeline(this.renderPipeline);
     renderPass.setVertexBuffer(
       0,
-      this.particleBuffers[(this.frameNum + 1) % 2],
+      this.particleBuffers[(this.frameNum + 1) % 2]
     );
     renderPass.setVertexBuffer(1, this.verticesBuffer);
     renderPass.draw(3, this.particleCount);
@@ -229,12 +233,15 @@ class Boids extends Framework {
   }
 }
 
-const boids = new Boids({
-  particleCount: 1500, // This should match NUM_PARTICLES in the compute shader.
-  particlesPerGroup: 64,
-  dimensions: {
-    width: 1600,
-    height: 1200,
+const boids = new Boids(
+  {
+    particleCount: 1500, // This should match NUM_PARTICLES in the compute shader.
+    particlesPerGroup: 64,
+    dimensions: {
+      width: 1600,
+      height: 1200,
+    },
   },
-}, await Boids.getDevice());
+  await Boids.getDevice()
+);
 await boids.renderPng();

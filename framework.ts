@@ -7,7 +7,7 @@ export class Framework {
   static async getDevice(features: GPUFeatureName[] = []): Promise<GPUDevice> {
     const adapter = await navigator.gpu.requestAdapter();
     const device = await adapter?.requestDevice({
-      nonGuaranteedFeatures: features,
+      requiredFeatures: features,
     });
 
     if (!device) {
@@ -29,7 +29,7 @@ export class Framework {
     await this.init();
     const { texture, outputBuffer } = createCapture(
       this.device,
-      this.dimensions,
+      this.dimensions
     );
     const encoder = this.device.createCommandEncoder();
     this.render(encoder, texture.createView());
